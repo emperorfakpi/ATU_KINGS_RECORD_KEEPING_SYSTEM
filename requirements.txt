@@ -19,7 +19,7 @@ click==8.1.7
 click-didyoumean==0.3.1
 click-plugins==1.1.1
 click-repl==0.3.0
-dbus-python==1.2.16
+
 Django==4.2.15
 django-allauth==64.0.0
 django-rest-auth==0.9.5
@@ -53,7 +53,7 @@ multidict==6.0.5
 passlib==1.7.4
 prompt-toolkit==3.0.47
 psycopg2-binary==2.9.9
-pycurl==7.43.0.6
+
 PyGObject==3.38.0
 PyJWT==2.8.0
 PyMySQL==1.1.1
