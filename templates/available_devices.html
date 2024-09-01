@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Devices</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Available Devices</h1>
+        <nav>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('waiting_list') }}">Waiting List</a>
+            <a href="{{ url_for('booked_devices') }}">Booked Devices</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Available Devices</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Total Quantity</th>
+                    <th>Available Quantity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in devices %}
+                <tr>
+                    <td>{{ device.name }}</td>
+                    <td>{{ device.total_quantity }}</td>
+                    <td>{{ device.available_quantity }}</td>
+                    <td>
+                        <form action="{{ url_for('update_device', id=device.id) }}" method="POST" style="display:inline;">
+                            <select name="action">
+                                <option value="book">Book</option>
+                                <option value="return">Return</option>
+                            </select>
+                            <button type="submit">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

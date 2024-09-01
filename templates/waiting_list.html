@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Waiting List</h1>
+        <nav>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('booked_devices') }}">Booked Devices</a>
+            <a href="{{ url_for('available_devices') }}">Available Devices</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Reservations on Waiting List</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Unique Code</th>
+                    <th>Booking Details</th>
+                    <th>Time of Collection</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in reservations %}
+                <tr>
+                    <td>{{ reservation.name }}</td>
+                    <td>{{ reservation.unique_code }}</td>
+                    <td>{{ reservation.booking_details }}</td>
+                    <td>{{ reservation.time_of_collection.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ reservation.duration }} minutes</td>
+                    <td>{{ reservation.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpg" href="https://www.zaatu.com/wp-content/uploads/2022/05/ZAATU-Web-Art1593-1600-1.jpg">
+    <title>Reservation Record System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Body */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* Navigation Bar */
+        nav {
+            background: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            display: inline-block;
+        }
+        
+        nav a:hover {
+            background: #575757;
+        }
+
+        /* Container */
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding-top: 20px;
+        }
+        
+        /* Form */
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        form input, form select, form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        form input[type="submit"] {
+            background: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        
+        form input[type="submit"]:hover {
+            background: #575757;
+        }
+        
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        table th, table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        table th {
+            background: blue;
+            color: #fff;
+        }
+        
+        /* Flash Messages */
+        .flash {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .flash.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .flash.danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Reservation Records</h1>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('search_reservations') }}">Search</a>
+        <a href="{{ url_for('booked_devices') }}">Booked Devices</a>
+        <a href="{{ url_for('waiting_list') }}">Waiting List</a>
+        <a href="{{ url_for('available_devices') }}">Available Devices</a>
+        <a href="{{ url_for('telegram_messages') }}">check telegram requests</a>
+    </nav>
+
+    <div class="container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Search Form -->
+        <form action="{{ url_for('search_reservations') }}" method="get">
+            <input type="text" name="query" placeholder="Search by name or unique code" required>
+            <button type="submit">Search</button>
+        </form>
+
+        <!-- Add Reservation Form -->
+        <form action="{{ url_for('add_reservation') }}" method="POST">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            <br>
+            <label for="unique_code">Unique Code:</label>
+            <input type="text" id="unique_code" name="unique_code" required>
+            <br>
+            <label for="booking_details">Booking Details:</label>
+            <textarea id="booking_details" name="booking_details"></textarea>
+            <br>
+            <label for="time_of_collection">Time of Collection:</label>
+            <input type="datetime-local" id="time_of_collection" name="time_of_collection" required>
+            <br>
+            <label for="duration">Duration (minutes):</label>
+            <input type="number" id="duration" name="duration" required>
+            <br>
+            <button type="submit">Add Reservation</button>
+        </form>
+
+        <!-- Reservations Table -->
+        <h2>All Reservations</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Unique Code</th>
+                    <th>Booking Details</th>
+                    <th>Time of Collection</th>
+                    <th>Duration</th>
+                    <th>Time of Return</th>
+                    <th>Status</th>
+                    <th>Countdown</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in reservations %}
+                <tr>
+                    <td>{{ reservation.name }}</td>
+                    <td>{{ reservation.unique_code }}</td>
+                    <td>{{ reservation.booking_details }}</td>
+                    <td>{{ reservation.time_of_collection.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ reservation.duration }} minutes</td>
+                    <td>{{ reservation.time_of_return.strftime('%Y-%m-%d %H:%M:%S') if reservation.time_of_return else 'Not Returned' }}</td>
+                    <td>{{ reservation.status }}</td>
+                    <td id="countdown-{{ reservation.id }}"></td>
+                    <td>
+                        <form action="{{ url_for('update_reservation', id=reservation.id) }}" method="POST" style="display:inline-block;">
+                            <select name="status">
+                                <option value="Not Collected" {% if reservation.status == 'Not Collected' %}selected{% endif %}>Not Collected</option>
+                                <option value="Collected" {% if reservation.status == 'Collected' %}selected{% endif %}>Collected</option>
+                                <option value="Expired" {% if reservation.status == 'Expired' %}selected{% endif %}>Expired</option>
+                            </select>
+                            <br>
+                            <label for="time_of_return">Time of Return:</label>
+                            <input type="datetime-local" id="time_of_return" name="time_of_return" value="{{ reservation.time_of_return.strftime('%Y-%m-%dT%H:%M') if reservation.time_of_return else '' }}">
+                            <br>
+                            <button type="submit">Update</button>
+                        </form>
+                        <form action="{{ url_for('delete_reservation', id=reservation.id) }}" method="POST" style="display:inline-block;">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <script>
+                    var endTime = new Date("{{ reservation.time_of_collection.strftime('%Y-%m-%d %H:%M:%S') }}").getTime() + {{ reservation.duration * 60000 }};
+                    var countdownElement = document.getElementById("countdown-{{ reservation.id }}");
+
+                    var x = setInterval(function() {
+                        var now = new Date().getTime();
+                        var distance = endTime - now;
+                        
+                        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        
+                        countdownElement.innerHTML = hours + "h " + minutes + "m " + seconds + "s ";
+                        
+                        if (distance < 0) {
+                            clearInterval(x);
+                            countdownElement.innerHTML = "Time's up";
+                        }
+                    }, 1000);
+                </script>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
